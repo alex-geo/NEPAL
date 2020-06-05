@@ -135,9 +135,9 @@ write.csv(xtable(distc2010), "dist2010.csv")
 
 #Afin d’utiliser des processus aléatoires mais de faire en sorte qu’ils soient reproductibles dans le temps, est une fonction qui permet de fixer les résultats qui seront fournis par le RNG (random number generator).
 set.seed(123)
-lc1 <- setValues(r1_res, sample(1:8, 124250, replace = T))
-lc2 <- setValues(r2_res, sample(1:8, 124250, replace = T))
-lc3 <- setValues(r3_res, sample(1:8, 124250, replace = T))
+lc1 <- setValues(r1_res, sample(1:8, 6051780, replace = T))
+lc2 <- setValues(r2_res, sample(1:8, 6051780, replace = T))
+lc3 <- setValues(r3_res, sample(1:8, 6051780, replace = T))
 
 #To detect landcover changes, the basic approach is to using logical tests:
   
