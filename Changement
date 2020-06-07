@@ -1,3 +1,6 @@
+#ANALYSE DE CHANGEMENT DES SOLS AU NEPAL
+#AUTEUR: ALEX DE SA
+
 #Import libraries
 
 library (sp)
@@ -29,7 +32,7 @@ dem_geo <- raster(x = "C:/Users/INSTALL/Desktop/mini-projet/BD/geo_morf1.tif")
 
 #vérification des propriétés générales rasters
 
-compareRaster(raster, extent=TRUE, rowcol=TRUE, crs=TRUE, res=FALSE, orig=FALSE,
+compareRaster(r1, r2, r3, extent=TRUE, rowcol=TRUE, crs=TRUE, res=FALSE, orig=FALSE,
               rotation=TRUE, values=FALSE, tolerance=0, stopiffalse=TRUE, showwarning=FALSE)
 
 print (r1)
@@ -38,43 +41,54 @@ print (r3)
 print (districts)
 print (dem_geo)
 
+#Reamostrage des pixels 
+
+r1_res <- resample(r1, districts, method="ngb", filename="r1_res", overwrite=TRUE)
+r2_res <- resample(r2, districts, method="ngb", filename="r2_res", overwrite=TRUE)
+r3_res <- resample(r3, districts, method="ngb", filename="r3_res", overwrite=TRUE)
+dem_res <- resample(dem_geo, districts, method="ngb", filename="dem_res", overwrite=TRUE)
+
+writeRaster(r1_res, filename="1990_resample.tif", format="GTiff", overwrite=TRUE)
+writeRaster(r2_res, filename="2000_resample.tif", format="GTiff", overwrite=TRUE)
+writeRaster(r3_res, filename="2010_resample.tif", format="GTiff", overwrite=TRUE)
+writeRaster(dem_res, filename="Classes_geo_resample.tif", format="GTiff", overwrite=TRUE)
+
 #Définition de l'extension de la zone d'étude
 
 ext <- as(extent(80.06006, 88.20419, 26.34754, 30.44732), 'SpatialPolygons')
-crs(ext) <- crs(r1)
-r1_ext <- crop(r1, ext)
-crs(ext) <- crs (r2)
-r2_ext <- crop(r2, ext)
-crs(ext) <- crs(r3)
-r3_ext <- crop(r3, ext)
-crs(ext) <- crs(dem_geo)
-dem_geo_ext <- crop(dem_geo, ext)
+
+crs(ext) <- crs(r1_res)
+r1_ext <- crop(r1_res, ext)
+crs(ext) <- crs (r2_res)
+r2_ext <- crop(r2_res, ext)
+crs(ext) <- crs(r3_res)
+r3_ext <- crop(r3_res, ext)
+crs(ext) <- crs(dem_res)
+dem_ext <- crop(dem_res, ext)
 crs(ext) <- crs(districts)
 dist_ext <- crop(districts, ext)
 
-#Reamostrage des pixels 
+print (r1_ext)
+print (r2_ext)
+print (r3_ext)
+print (dist_ext)
+print (dem_ext)
 
-r1_res <- resample(r1_ext, dist_ext, method="ngb", filename="r1_res", overwrite=TRUE)
-r2_res <- resample(r2_ext, dist_ext, method="ngb", filename="r2_res", overwrite=TRUE)
-r3_res <- resample(r3_ext, dist_ext, method="ngb", filename="r3_res", overwrite=TRUE)
-dem_res <- resample(dem_geo_ext, dist_ext, method="ngb", filename="dem_res", overwrite=TRUE)
-
-writeRaster(r1_res, filename="1990_original.tif", format="GTiff", overwrite=TRUE)
-writeRaster(r2_res, filename="2000_original.tif", format="GTiff", overwrite=TRUE)
-writeRaster(r3_res, filename="2010_original.tif", format="GTiff", overwrite=TRUE)
-writeRaster(r3_res, filename="Classes_geo.tif", format="GTiff", overwrite=TRUE)
+writeRaster(r1_ext, filename="1990_ext.tif", format="GTiff", overwrite=TRUE)
+writeRaster(r2_ext, filename="2000_ext.tif", format="GTiff", overwrite=TRUE)
+writeRaster(r3_ext, filename="2010_ext.tif", format="GTiff", overwrite=TRUE)
 
 #Création des "stacks"
 
-stack1 <- stack(r1_res, r2_res, layers=NULL)
-stack2 <- stack(r2_res, r3_res, layers=NULL)
-stack3 <- stack(r1_res, r3_res, layers=NULL)
-stack4 <- stack(r1_res, dem_res, layers=NULL)
-stack5 <- stack(r2_res, dem_res, layers=NULL)
-stack6 <- stack(r3_res, dem_res, layers=NULL)
-stack7 <- stack(r1_res, dist_ext, layers=NULL)
-stack8 <- stack(r2_res, dist_ext, layers=NULL)
-stack9 <- stack(r3_res, dist_ext, layers=NULL)
+stack1 <- stack(r1_ext, r2_ext, layers=NULL)
+stack2 <- stack(r2_ext, r3_ext, layers=NULL)
+stack3 <- stack(r1_ext, r3_ext, layers=NULL)
+stack4 <- stack(r1_ext, dem_ext, layers=NULL)
+stack5 <- stack(r2_ext, dem_ext, layers=NULL)
+stack6 <- stack(r3_ext, dem_ext, layers=NULL)
+stack7 <- stack(r1_ext, dist_ext, layers=NULL)
+stack8 <- stack(r2_ext, dist_ext, layers=NULL)
+stack9 <- stack(r3_ext, dist_ext, layers=NULL)
 
 #Création des tableaux croisés
 
@@ -92,28 +106,20 @@ dist2010 <- crosstab(stack9, digits=0, long=FALSE, useNA=FALSE, progress='')
 
 plot.new ()
 grid.table(change1_2)
-
 plot.new ()
 grid.table(change2_3)
-
 plot.new ()
 grid.table(change1_3)
-
 plot.new ()
 grid.table(geo1990)
-
 plot.new ()
 grid.table(geo2000)
-
 plot.new ()
 grid.table(geo2010)
-
 plot.new ()
 grid.table(dist1990)
-
 plot.new ()
 grid.table(dist2000)
-
 plot.new ()
 grid.table(dist2010)
 
@@ -127,7 +133,7 @@ write.csv(xtable(geo2000), "geochange2000.csv")
 write.csv(xtable(geo2010), "geo2010.csv")
 write.csv(xtable(dist1990), "dist1990.csv")
 write.csv(xtable(dist2000), "dist2000.csv")
-write.csv(xtable(distc2010), "dist2010.csv")
+write.csv(xtable(dist2010), "dist2010.csv")
 
 #LULC - Analyse des changements
 
@@ -150,6 +156,12 @@ writeRaster(change1, filename="Changement(1990-2000).tif", format="GTiff", overw
 cross_dem1 <- crosstab(dem_res, change1, digits=0, long=FALSE, useNA=FALSE, progress='')
 cross_dist1 <- crosstab(dist_ext, change1, digits=0, long=FALSE, useNA=FALSE, progress='')
 
+plot.new ()
+grid.table(cross_dem1)
+
+plot.new ()
+grid.table(cross_dist1)
+
 #Export CSV
 write.csv(xtable(cross_dem1), "cross_dem1.csv")
 write.csv(xtable(cross_dist1), "cross_dist1.csv")
@@ -163,7 +175,7 @@ writeRaster(change2, filename="Changement(2000-2010).tif", format="GTiff", overw
 #Crosstab (classes geomorphologiques et districts)
 
 cross_dem2 <- crosstab(dem_res, change1, digits=0, long=FALSE, useNA=FALSE, progress='')
-cross_dist2 <- crosstab(dist_ext, change1, digits=0, long=FALSE, useNA=FALSE, progress='')
+cross_dist2 <- crosstab(dist_ext, change2, digits=0, long=FALSE, useNA=FALSE, progress='')
 
 write.csv(xtable(cross_dem2), "cross_dem2.csv")
 write.csv(xtable(cross_dist2), "cross_dist2.csv")
@@ -254,15 +266,12 @@ levels(change6) <- rat
 
 # Plot
 
-levelplot(change5, par.settings=PuOrTheme(), xlab="", ylab="")
-levelplot(change6, par.settings=PuOrTheme(), xlab="", ylab="")
-
 LUCC1 <- levelplot(change5, par.settings=PuOrTheme(), xlab="", ylab="")
 LUCC2 <- levelplot(change6, par.settings=PuOrTheme(), xlab="", ylab="")
 
 #crosstab - Changement (classes geomorphologiques et districts)
 
-change5_geo <- crosstab(dem_res, change5, digits=0, long=FALSE, useNA=FALSE, progress='')
+change_geo <- crosstab(dem_res, changement1, digits=0, long=FALSE, useNA=FALSE, progress='')
 plot.new ()
 grid.table(change5_geo)
 write.csv(xtable(change5_geo), "changement(1990-2000)_geomorphologie.csv")
@@ -281,3 +290,4 @@ change6_dist <- crosstab(dist_ext, change6, digits=0, long=FALSE, useNA=FALSE, p
 plot.new ()
 grid.table(change6_dist)
 write.csv(xtable(change6_dist), "changement(2000-2010)_district.csv")
+          
